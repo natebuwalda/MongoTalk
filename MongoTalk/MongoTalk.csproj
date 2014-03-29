@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Employee.cs" />
     <Compile Include="Model\Document.cs" />
     <Compile Include="MongoSandbox.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,7 +61,9 @@
     <Compile Include="Wrapper\MongoDBConnectionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />

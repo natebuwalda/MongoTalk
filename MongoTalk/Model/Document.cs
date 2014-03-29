@@ -8,8 +8,5 @@ namespace MongoTalk.Model
     {
         [BsonId]
         public ObjectId Id { get; set; }
-
-        [BsonElement("lmd")]
-        public DateTime LastModifiedDate;
     }
 }
