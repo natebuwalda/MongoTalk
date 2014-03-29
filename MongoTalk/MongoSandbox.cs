@@ -43,6 +43,9 @@ namespace MongoTalk
             UpdateNatesAgeToThirtySix(database);
             UpdateNatesPhoneNumber(database);
 
+            Log.Info("Aggregating the employee information");
+            AggregateOldEmployeesByDepartment(database);
+
             Log.Info("Removing everyone except Nate");
             RemoveEveryoneExceptNate(database);
 
@@ -198,6 +201,49 @@ namespace MongoTalk
             Log.InfoFormat("The insert was successful? {0}", writeResult.Ok);
 
             FindNateAsBsonDocument(database);
+        }
+        
+        private static void AggregateOldEmployeesByDepartment(MongoDatabase database)
+        {
+            Log.Info("Getting a count of old employees by department");
+            var domainCollection = database.GetCollection<Employee>("employee");
+            
+            var matchOn = new BsonDocument
+            {
+                {
+                    "$match", new BsonDocument
+                    {
+                        {
+                            "age", new BsonDocument {{"$gte", 30}}
+                        }
+                    }
+                }
+            };
+
+            var groupBy = new BsonDocument
+            {
+                {
+                    "$group", new BsonDocument
+                    {
+                        {
+                            "_id", "$department"
+                        }
+                        ,{
+                            "count", new BsonDocument
+                            {
+                                {"$sum", 1}
+                            }
+                        }
+                    }
+                }
+            };
+
+            var aggregateResult = domainCollection.Aggregate(matchOn, groupBy);
+            Log.Info("The old employees per department were:");
+            foreach (var resultDocument in aggregateResult.ResultDocuments)
+            {
+                Log.InfoFormat("Result - {0}", resultDocument);
+            }
         }
 
         private static void RemoveEveryoneExceptNate(MongoDatabase database)
