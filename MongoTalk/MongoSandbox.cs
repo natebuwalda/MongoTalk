@@ -25,7 +25,7 @@ namespace MongoTalk
 
             var database = CreateConnection();
 
-            Log.Info("Looking up existing documents");
+            Log.Info("Querying existing documents");
             FindNateAsBsonDocument(database);
             FindNateAsEmployeeObject(database);
             FindOldSoftwareEmployees(database);
@@ -34,6 +34,10 @@ namespace MongoTalk
             InsertBsonDocument(database);
             InsertSoftwareEmployees(database);
             UnsafelyInsertSoftwareEmployees(database);
+            
+            Log.Info("Querying existing documents using LINQ");
+            FindOldSoftwareEmployeesWithLinq(database);
+            FindIfThereAreAnyIntelligenceEmployees(database);
 
             Log.Info("Removing everyone except Nate");
             RemoveEveryoneExceptNate(database);
@@ -85,6 +89,35 @@ namespace MongoTalk
             {
                 Log.InfoFormat("{0} is an old software developer", employee.Name);
             }
+        }
+        
+        private static void FindOldSoftwareEmployeesWithLinq(MongoDatabase database)
+        {
+            var domainQueryable = database.GetCollection<Employee>("employee").AsQueryable();
+
+            var employees = domainQueryable.Where(employee => 
+                employee.Department == "Software Development"
+                && employee.Age >= 30);
+
+            var mongoQuery = ((MongoQueryable<Employee>) employees).GetMongoQuery();
+
+            var json = mongoQuery.ToJson();
+            Log.InfoFormat("The generated bson for the LINQ query was {0}", json);
+            Log.InfoFormat("The query result was of type {0}", employees);
+
+            foreach (var employee in employees)
+            {
+                Log.InfoFormat("{0} is an old software developer", employee.Name);
+            }
+        }
+        
+        private static void FindIfThereAreAnyIntelligenceEmployees(MongoDatabase database)
+        {
+            var domainQueryable = database.GetCollection<Employee>("employee").AsQueryable();
+
+            var hasIntelligenceEmployees = domainQueryable.Any(employee => employee.Department == "Intelligence");
+
+            Log.InfoFormat("There are intelligence employees? {0}", hasIntelligenceEmployees);
         }
 
         private static void InsertBsonDocument(MongoDatabase database)
