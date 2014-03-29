@@ -39,6 +39,10 @@ namespace MongoTalk
             FindOldSoftwareEmployeesWithLinq(database);
             FindIfThereAreAnyIntelligenceEmployees(database);
 
+            Log.Info("Updating existing documents");
+            UpdateNatesAgeToThirtySix(database);
+            UpdateNatesPhoneNumber(database);
+
             Log.Info("Removing everyone except Nate");
             RemoveEveryoneExceptNate(database);
 
@@ -145,7 +149,7 @@ namespace MongoTalk
             var softwareEmployees = new[]
             {
                 new Employee { Name = "Bill Gates", Department = "Software Development", Age = 58 },
-                new Employee { Name = "Charlie Strawn", Department = "Software Development", Age = 23 }
+                new Employee { Name = "Young Developer", Department = "Software Development", Age = 23 }
             };
 
             var writeResult = domainCollection.InsertBatch(softwareEmployees);
@@ -161,7 +165,7 @@ namespace MongoTalk
             var softwareEmployees = new[]
             {
                 new Employee { Name = "Steve Ballmer", Department = "Software Development", Age = 58 },
-                new Employee { Name = "Jared Dellit", Department = "Software Development", Age = 29 }
+                new Employee { Name = "Experienced Developer", Department = "Software Development", Age = 29 }
             };
 
             domainCollection.InsertBatch(softwareEmployees, WriteConcern.Unacknowledged);
@@ -170,13 +174,47 @@ namespace MongoTalk
             FindOldSoftwareEmployees(database);
         }
 
+        private static void UpdateNatesAgeToThirtySix(MongoDatabase database)
+        {
+            Log.Info("Making Nate older");
+            var domainCollection = database.GetCollection<Employee>("employee");
+            var query = Query.EQ("name", "Nate Buwalda");
+            var update = Update.Set("age", 36);
+
+            var writeResult = domainCollection.Update(query, update);
+            Log.InfoFormat("The insert was successful? {0}", writeResult.Ok);
+
+            FindNateAsEmployeeObject(database);
+        }
+        
+        private static void UpdateNatesPhoneNumber(MongoDatabase database)
+        {
+            Log.Info("Adding a phone number to Nate");
+            var domainCollection = database.GetCollection<Employee>("employee");
+            var query = Query.EQ("name", "Nate Buwalda");
+            var update = Update.Set("phoneNumber", "5151234567");
+
+            var writeResult = domainCollection.Update(query, update);
+            Log.InfoFormat("The insert was successful? {0}", writeResult.Ok);
+
+            FindNateAsBsonDocument(database);
+        }
+
         private static void RemoveEveryoneExceptNate(MongoDatabase database)
         {
             var employeeCollection = database.GetCollection<Employee>("employee");
             employeeCollection.Remove(Query.NE("name", "Nate Buwalda"));
 
-            var documentsInCollection = employeeCollection.AsQueryable().Count();
+            var queryarbleCollection = employeeCollection.AsQueryable();
+            var nateDocument = queryarbleCollection.First(employee => employee.Name == "Nate Buwalda");
+
+            nateDocument.Age = 35;
+            employeeCollection.Save(nateDocument);
+
+            var documentsInCollection = queryarbleCollection.Count();
             Log.InfoFormat("There are {0} document(s) left in the employee collection after the removal", documentsInCollection);
+
+            FindNateAsBsonDocument(database);
         }
     }
 }
