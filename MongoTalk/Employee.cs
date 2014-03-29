@@ -30,4 +30,19 @@ namespace MongoTalk
             return string.Format("Employee - Name: {0}, Department: {1}, Age: {2}", Name, Department, Age);
         }
     }
+
+    [BsonIgnoreExtraElements]
+    public class Person : Document
+    {
+        [BsonElement("name")]
+        public string Name { get; set; }
+
+        [BsonElement("age"), BsonIgnoreIfDefault]
+        public int Age { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("Person - Name: {0}, Age: {1}", Name, Age);
+        }
+    }
 }

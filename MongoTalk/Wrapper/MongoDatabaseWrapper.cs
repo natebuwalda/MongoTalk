@@ -4,11 +4,11 @@ using MongoTalk.Model;
 
 namespace MongoTalk.Wrapper
 {
-    public class MongoDatabaseAdapter : IMongoDatabase
+    public class MongoDatabaseWrapper : IMongoDatabase
     {
         private readonly MongoDatabase _mongoDatabase;
 
-        public MongoDatabaseAdapter(MongoDBConnectionInfo connectionInfo)
+        public MongoDatabaseWrapper(MongoDBConnectionInfo connectionInfo)
         {
             var mongoUrl = new MongoUrl(connectionInfo.DBUri);
             var settings = MongoClientSettings.FromUrl(mongoUrl);
@@ -22,11 +22,6 @@ namespace MongoTalk.Wrapper
         public IMongoTemplate<T> GetCollection<T>(string collectionName) where T : Document
         {
             return new MongoTemplate<T>(_mongoDatabase.GetCollection<T>(collectionName));
-        }
-
-        public MongoDatabase GetDatabase()
-        {
-            return _mongoDatabase;
         }
     }
 }

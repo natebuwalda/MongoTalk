@@ -57,7 +57,7 @@
     <Compile Include="Wrapper\IMongoTemplate.cs" />
     <Compile Include="Wrapper\IMongoDatabase.cs" />
     <Compile Include="Wrapper\MongoTemplate.cs" />
-    <Compile Include="Wrapper\MongoDatabaseAdapter.cs" />
+    <Compile Include="Wrapper\MongoDatabaseWrapper.cs" />
     <Compile Include="Wrapper\MongoDBConnectionInfo.cs" />
   </ItemGroup>
   <ItemGroup>

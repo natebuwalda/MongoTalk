@@ -6,6 +6,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using MongoDB.Driver.Linq;
+using MongoTalk.Wrapper;
 
 namespace MongoTalk
 {
@@ -28,6 +29,7 @@ namespace MongoTalk
             Log.Info("Querying existing documents");
             FindNateAsBsonDocument(database);
             FindNateAsEmployeeObject(database);
+            FindNateAsPersonObject(database);
             FindOldSoftwareEmployees(database);
 
             Log.Info("Inserting new documents");
@@ -45,6 +47,9 @@ namespace MongoTalk
 
             Log.Info("Aggregating the employee information");
             AggregateOldEmployeesByDepartment(database);
+
+            Log.Info("Test out our template");
+            TryOutOurTemplate(database);
 
             Log.Info("Removing everyone except Nate");
             RemoveEveryoneExceptNate(database);
@@ -82,6 +87,13 @@ namespace MongoTalk
             var employeeDocument = domainCollection.FindOne(Query.EQ("name", "Nate Buwalda"));
             Log.InfoFormat("Employee document version is: {0}", employeeDocument);
         }
+        
+        private static void FindNateAsPersonObject(MongoDatabase database)
+        {
+            var domainCollection = database.GetCollection<Person>("employee");
+            var employeeDocument = domainCollection.FindOne(Query.EQ("name", "Nate Buwalda"));
+            Log.InfoFormat("Person document version is: {0}", employeeDocument);
+        }
 
         private static void FindOldSoftwareEmployees(MongoDatabase database)
         {
@@ -97,7 +109,7 @@ namespace MongoTalk
                 Log.InfoFormat("{0} is an old software developer", employee.Name);
             }
         }
-        
+
         private static void FindOldSoftwareEmployeesWithLinq(MongoDatabase database)
         {
             var domainQueryable = database.GetCollection<Employee>("employee").AsQueryable();
@@ -117,7 +129,7 @@ namespace MongoTalk
                 Log.InfoFormat("{0} is an old software developer", employee.Name);
             }
         }
-        
+
         private static void FindIfThereAreAnyIntelligenceEmployees(MongoDatabase database)
         {
             var domainQueryable = database.GetCollection<Employee>("employee").AsQueryable();
@@ -160,7 +172,7 @@ namespace MongoTalk
 
             FindOldSoftwareEmployees(database);
         }
-        
+
         private static void UnsafelyInsertSoftwareEmployees(MongoDatabase database)
         {
             Log.Info("Inserting a batch of employees with a WriteConcern of 0");
@@ -189,7 +201,7 @@ namespace MongoTalk
 
             FindNateAsEmployeeObject(database);
         }
-        
+
         private static void UpdateNatesPhoneNumber(MongoDatabase database)
         {
             Log.Info("Adding a phone number to Nate");
@@ -202,7 +214,7 @@ namespace MongoTalk
 
             FindNateAsBsonDocument(database);
         }
-        
+
         private static void AggregateOldEmployeesByDepartment(MongoDatabase database)
         {
             Log.Info("Getting a count of old employees by department");
@@ -244,6 +256,22 @@ namespace MongoTalk
             {
                 Log.InfoFormat("Result - {0}", resultDocument);
             }
+        }
+
+        private static void TryOutOurTemplate(MongoDatabase database)
+        {
+            var template = new MongoTemplate<Employee>(database.GetCollection<Employee>("employee"));
+            
+            var nateFromTemplate = template.Read(Query.EQ("name", "Nate Buwalda")).FirstOrDefault();
+            Log.InfoFormat("Template read results were {0}", nateFromTemplate);
+
+            var newEmployee = new Employee {Name = "John Doe", Department = "S Mart", Age = 22};
+            var insertedEmployee = template.Create(newEmployee);
+            
+            insertedEmployee.Age = 27;
+            var updatedEmployee = template.Update(insertedEmployee);
+            
+            Log.InfoFormat("The result of all of our template operations was {0}", updatedEmployee);
         }
 
         private static void RemoveEveryoneExceptNate(MongoDatabase database)
